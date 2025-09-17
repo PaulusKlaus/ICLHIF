@@ -84,11 +84,18 @@ class MatHandler(object):
         """
         # DONE
         X, y = self.read_mat()
+        print(f"Total data shape: {X.shape}, Total labels shape: {y.shape}")
+        print(f"Unique labels in the dataset: {np.unique(y)}")
+        print(f"Labels distribution in X: {np.bincount(y)}")
 
         # Extract 30% of the data as the test set, and from that, extract 50% as the validation set
-        X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.30, random_state=42)       # random state schanged from 30
-        X_test, X_val, y_test, y_val = train_test_split(X_temp, y_temp, test_size=0.50, random_state=42)
-
+        X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.30, random_state=42, stratify=y)       # random state schanged from 30
+        X_test, X_val, y_test, y_val = train_test_split(X_temp, y_temp, test_size=0.50, random_state=42, stratify=y_temp) # random state schanged from 30
+        print(f"Training set shape: {X_train.shape}, Training labels shape: {y_train.shape}")
+        print(f"Training set unique labels: {np.unique(y_train)}")
+        print(f"Labels distribution in train: {np.bincount(y_train)}")
+        print(f"Temp set unique labels: {np.unique(y_temp)}")
+        print(f"Labels distribution in temp: {np.bincount(y_temp)}")        
         X_train = np.squeeze(X_train)     # remove single-dimensional entries from the shape of an array (913, 1024, 1) -> (913, 1024)
         X_test = np.squeeze(X_test)  # (196, 1024, 1) -> (196, 1024)
         X_val = np.squeeze(X_val) # (196, 1024, 1) -> (196, 1024)
@@ -214,10 +221,16 @@ if __name__ == "__main__":
     """
     Test the effect of dataset generation
     """
-    data, label = get_Data_By_Label(label_list=[0], pattern='full')    
+    data, label = get_Data_By_Label(mathandler=MatHandler(is_oneD_Fourier=False),
+                                    pattern='train',
+                                    label_list=[]
+                                    )    
     
-    print(data) 
-    print(label)
-    print(data.shape)
-    print(label.shape)
-    print('suc')
+    # unique_labels = np.unique(label)
+    # print("Unique labels:", unique_labels)
+    # print("Number of label types:", len(unique_labels))
+    # print(data) 
+    # print(label)
+    # print(data.shape)
+    # print(label.shape)
+    # print('suc')
