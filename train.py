@@ -118,7 +118,7 @@ def train_Step(Step):
             epochs = 50,
             model_dir ='', 
             load_model_name ='',
-            output_dir ='code/models/Step_One', 
+            output_dir ='models/Step_One', 
             save_model_name = 'Step_One_147.h5',
             label_list = [],
             predict_model_name = '',
@@ -130,9 +130,9 @@ def train_Step(Step):
         # 正常数据 + 第一个故障
         Step_Original(
             epochs = 50,            
-            model_dir ='code/models/Step_One/', 
+            model_dir ='models/Step_One/', 
             load_model_name ='Step_One_147.h5',
-            output_dir ='code/models/Step_Two', 
+            output_dir ='models/Step_Two', 
             save_model_name = 'Step_Two_147.h5',
             label_list = [1],
             predict_model_name = 'Step_One_Predictor_147.h5',
@@ -144,9 +144,9 @@ def train_Step(Step):
         # 正常数据 + 第一，二个故障
         Step_Original(
             epochs = 50,
-            model_dir ='code/models/Step_Two/', 
+            model_dir ='models/Step_Two/', 
             load_model_name ='Step_Two_147.h5',
-            output_dir ='code/models/Step_Three', 
+            output_dir ='models/Step_Three', 
             save_model_name = 'Step_Three_147.h5',
             label_list = [1, 4],
             predict_model_name = 'Step_Two_Predictor_147.h5',

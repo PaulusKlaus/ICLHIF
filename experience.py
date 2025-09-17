@@ -84,7 +84,7 @@ def Experience_Original(
     pre_data = f.predict(now_data)
     
     # TSNE投影到二维
-    tsne = TSNE(perplexity=10, n_components=2, init='random', n_iter=5000)
+    tsne = TSNE(perplexity=10, n_components=2, init='random', max_iter=5000)
     low_dim_embs = tsne.fit_transform(pre_data)
     labels = now_label
 
