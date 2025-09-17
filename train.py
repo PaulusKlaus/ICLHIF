@@ -1,3 +1,6 @@
+
+
+
 import tensorflow as tf
 
 import matplotlib.pyplot as plt
@@ -76,7 +79,7 @@ def Step_Original(
 
     # 设置效率参数
     decay_steps = 500
-    lr_decayed_fn = tf.keras.experimental.CosineDecay(initial_learning_rate=0.01, decay_steps=decay_steps)
+    lr_decayed_fn = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=0.01, first_decay_steps= decay_steps)
     optimizer = tf.keras.optimizers.SGD(lr_decayed_fn, momentum=0.6)
 
     # 建立模型
@@ -119,10 +122,10 @@ def train_Step(Step):
             model_dir ='', 
             load_model_name ='',
             output_dir ='models/Step_One', 
-            save_model_name = 'Step_One_147.h5',
+            save_model_name = 'Step_One_147.weights.h5',
             label_list = [],
             predict_model_name = '',
-            save_predict_model_name = 'Step_One_Predictor_147.h5',
+            save_predict_model_name = 'Step_One_Predictor_147.weights.h5',
             batch_size = 10
             )
 
@@ -131,12 +134,12 @@ def train_Step(Step):
         Step_Original(
             epochs = 50,            
             model_dir ='models/Step_One/', 
-            load_model_name ='Step_One_147.h5',
+            load_model_name ='Step_One_147.weights.h5',
             output_dir ='models/Step_Two', 
-            save_model_name = 'Step_Two_147.h5',
+            save_model_name = 'Step_Two_147.weights.h5',
             label_list = [1],
-            predict_model_name = 'Step_One_Predictor_147.h5',
-            save_predict_model_name = 'Step_Two_Predictor_147.h5',
+            predict_model_name = 'Step_One_Predictor_147.weights.h5',
+            save_predict_model_name = 'Step_Two_Predictor_147.weights.h5',
             batch_size = 10
             )
 
@@ -145,12 +148,12 @@ def train_Step(Step):
         Step_Original(
             epochs = 50,
             model_dir ='models/Step_Two/', 
-            load_model_name ='Step_Two_147.h5',
+            load_model_name ='Step_Two_147.weights.h5',
             output_dir ='models/Step_Three', 
-            save_model_name = 'Step_Three_147.h5',
+            save_model_name = 'Step_Three_147.weights.h5',
             label_list = [1, 4],
-            predict_model_name = 'Step_Two_Predictor_147.h5',
-            save_predict_model_name = 'Step_Three_Predictor_147.h5',
+            predict_model_name = 'Step_Two_Predictor_147.weights.h5',
+            save_predict_model_name = 'Step_Three_Predictor_147.weights.h5',
             batch_size = 10
             )
 
