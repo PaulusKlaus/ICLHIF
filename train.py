@@ -7,7 +7,7 @@ import os
 from os.path import join
 from tqdm import tqdm
 from model_CL import get_encoder, get_predictor, train_step
-from data_util import load_Dataset_Original
+from data_util_pal import load_Dataset_Original
 
 
 def train_CL(
@@ -19,7 +19,7 @@ def train_CL(
     epochs=100
     ):
     """
-    训练函数
+    Train function
     """
 
     step_wise_loss = []
@@ -50,13 +50,13 @@ def Step_Original(
     save_predict_model_name
     ):
     """
-    训练函数
+    Training function
     """
 
-    # 选择显卡
+    # Select GPU
     os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1"
 
-    # 生成数据集
+    # Generate dataset
     dataset_one = load_Dataset_Original(
         label_list = label_list, 
         batch_size = batch_size, 
@@ -70,50 +70,50 @@ def Step_Original(
         pattern = 'train'
         )
 
-    # 输出模型
+    # Output model summary
     get_encoder(codesize=16).summary()
     get_predictor(codesize=16).summary()
 
-    # 设置效率参数
+    # Set optimization parameters
     decay_steps = 500
     lr_decayed_fn = tf.keras.experimental.CosineDecay(initial_learning_rate=0.01, decay_steps=decay_steps)
     optimizer = tf.keras.optimizers.SGD(lr_decayed_fn, momentum=0.6)
 
-    # 建立模型
+    # Build model 
     f = get_encoder(codesize=16)
     h = get_predictor(codesize=16)
 
-    # 加载模型历史权重
+    # Load model historical weights
     if 0 < len(load_model_name) and 0 < len(predict_model_name):    
         print("load model weights...")
         f.load_weights(model_dir + load_model_name)         
         h.load_weights(model_dir + predict_model_name)
 
     
-    # 训练
+    # Training 
     epoch_wise_loss, f, h  = train_CL(f, h, dataset_one, dataset_two, optimizer, epochs=epochs)
     plt.plot(epoch_wise_loss)
     
-    # 保存模型权重
+    # Savew model weights
     f.save_weights(join(output_dir, save_model_name))
     h.save_weights(join(output_dir, save_predict_model_name))
 
-    # 绘制loss曲线
+    # Plot loss curve and save 
     plt.grid()
     plt.savefig('epoch_wise_loss.png')
 
 def train_Step(Step):
     """
-    三个实验的训练:
-    1.只使用正常数据
-    2.正常数据 + 第一个故障
-    3.正常数据 + 第一，二个故障
-    通过设置Step来选取进行的步骤:
+    Training for three experiments:
+    1. Use only normal data
+    2. Normal data + first fault type
+    3. Normal data + first and second fault types
+    Select the step to execute by setting Step:
     one, two, three
     """
 
     if 'one' == Step:
-        # 只使用正常数据
+        # Only normal data
         Step_Original(
             epochs = 50,
             model_dir ='', 
@@ -127,7 +127,7 @@ def train_Step(Step):
             )
 
     elif 'two' == Step:
-        # 正常数据 + 第一个故障
+        # Normal data + first fault type
         Step_Original(
             epochs = 50,            
             model_dir ='models/Step_One/', 
@@ -141,7 +141,7 @@ def train_Step(Step):
             )
 
     elif 'three' == Step:
-        # 正常数据 + 第一，二个故障
+        # Normal data + first and second fault types
         Step_Original(
             epochs = 50,
             model_dir ='models/Step_Two/', 
@@ -160,7 +160,8 @@ def train_Step(Step):
 
 if __name__ == '__main__':
     """
-    训练rr
+    Training entry point
     """
-    Step = 'one'   # 确定step
+    Step = 'three'   # Set step
     train_Step(Step=Step)
+

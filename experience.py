@@ -1,6 +1,6 @@
 from tkinter import X
 from model_CL import get_encoder
-from data_util import  get_Data_By_Label, MatHandler
+from data_util_pal import  get_Data_By_Label, MatHandler
 
 from sklearn.manifold import TSNE
 from  matplotlib.colors import  rgb2hex
@@ -21,9 +21,10 @@ def plot_with_labels(
     """
     
     # print('ploting')
-    # 设置字体
+    # Set up the figure
+    # 
     from matplotlib import rcParams
-    # 设置字体类型, 字体大小
+    # Set font type and font size
     config = {
         "font.family":'Times New Roman',  
         "font.size":20,
@@ -60,21 +61,21 @@ def Experience_Original(
     is_oneD_Fourier
     ):
     """
-    训练只用正常数据,在三类最轻故障上画图
+    Train using only normal data, and plot for the three lightest fault types.
     """
 
-    # 加载模型 
+    # print('Loading model...')
+    # Load model 
     f = get_encoder(codesize=codesize)
     f.load_weights(model_dir + model_name)
 
-    # 加载数据集
+    # Load dataset 
     now_data, now_label = get_Data_By_Label(
         mathandler = MatHandler(is_oneD_Fourier = is_oneD_Fourier), 
         pattern = 'train_val', 
         label_list = [1, 4, 7]
         )
-
-    # 修改标签[1, 4, 7]为[1, 2, 3]
+    # Change labels [1, 4, 7] to [1, 2, 3]  
     for i in range(len(now_label)):
         if now_label[i] == 4.0:
             now_label[i] = 2.0
@@ -83,28 +84,30 @@ def Experience_Original(
 
     pre_data = f.predict(now_data)
     
-    # TSNE投影到二维
+
+    #TSNE projection to two dimensions
     tsne = TSNE(perplexity=10, n_components=2, init='random', max_iter=5000)
     low_dim_embs = tsne.fit_transform(pre_data)
     labels = now_label
 
-    # 将提取的特征存入txt,四类整合后就是Features文件夹下的0147_16dim
+    # Save the extracted features to a txt file; after combining the four classes, the result is the 0147_16dim file in the Features folder.
     with open('Features/0147_16dim.csv',mode='a+') as f:
         x0 = pre_data[np.where(labels == 0)]   
-        x0_16dim = np.insert(x0,0,0,axis=1)     #第三个参数是labels对应
+        x0_16dim = np.insert(x0,0,0,axis=1)    # The third parameter corresponds to the label
         np.savetxt(f, x0_16dim, fmt="%.8f", delimiter=",")
         x1 = pre_data[np.where(labels == 1)]   
-        x1_16dim = np.insert(x1,0,1,axis=1)     #第三个参数是labels对应
+        x1_16dim = np.insert(x1,0,1,axis=1)    
         np.savetxt(f, x1_16dim, fmt="%.8f", delimiter=",")
         x2 = pre_data[np.where(labels == 2)]   
-        x2_16dim  = np.insert(x2,0,2,axis=1)     #第三个参数是labels对应
+        x2_16dim  = np.insert(x2,0,2,axis=1)    
         np.savetxt(f, x2_16dim, fmt="%.8f", delimiter=",")
         x3 = pre_data[np.where(labels == 3)]   
-        x3_16dim  = np.insert(x3,0,3,axis=1)     #第三个参数是labels对应
+        x3_16dim  = np.insert(x3,0,3,axis=1)    
         np.savetxt(f, x3_16dim, fmt="%.8f", delimiter=",")
 
 
-    # 画图
+
+    # Plotting
     plot_with_labels(
         train=low_dim_embs, 
         labels=labels,
@@ -116,10 +119,10 @@ def Experience_Original(
 
 def experience(is_oneD_Fourier):
     """
-    总实验函数
+    Main experiment function
     """
 
-    # 训练只用正常数据,在三类最轻故障上画图
+    # Train using only normal data, and plot for the three lightest fault types
     Experience_Original(
         codesize=16,
         model_dir='models/Step_One/', 
@@ -131,7 +134,7 @@ def experience(is_oneD_Fourier):
         is_oneD_Fourier = is_oneD_Fourier
         )
 
-    # 训练只用正常与最轻的第一类故障,在三类最轻故障上画图
+    # Train using only normal data and the lightest first fault type, and plot for the three lightest fault types.
     Experience_Original(
         codesize=16,
         model_dir='models/Step_Two/', 
@@ -143,7 +146,7 @@ def experience(is_oneD_Fourier):
         is_oneD_Fourier = is_oneD_Fourier
         )
 
-    # 训练只用正常与最轻的第一，二类故障,在三类最轻故障上画图
+    # Train using only normal data and the lightest first and second fault types, and plot for the three lightest fault types
     Experience_Original(
         codesize=16,
         model_dir='models/Step_Three/', 
@@ -160,7 +163,7 @@ def experience(is_oneD_Fourier):
 
 if __name__ == "__main__":
     """
-    实验
+    Run the full experience with Fourier-transformed data
     """
 
     experience(is_oneD_Fourier = True)

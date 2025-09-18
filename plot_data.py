@@ -89,7 +89,6 @@ def plot_spectra(data, labels, fs=None, samples_per_label=3, title="Amplitude sp
 data, labels = data_util_pal.get_Data_By_Label(
     mathandler=data_util_pal.MatHandler(is_oneD_Fourier=False),  # set True if you want pre-FFT
     pattern='full',                               # 'train' | 'val' | 'test' | other = train+val
-    label_list=[]                           # include label 0 if you want “normal”
 )
 
 plot_label_distribution(labels)
@@ -99,12 +98,12 @@ plot_time_signals(data, labels, samples_per_label=3)
 plot_spectra(data, labels, fs=None, samples_per_label=3)
 
 
-ds = data_util_pal.load_Dataset_Original(label_list=[0,1,2,3], batch_size=32, is_oneD_Fourier=False, pattern='train')
+# ds = data_util_pal.load_Dataset_Original(label_list=[0,1,2,3], batch_size=32, is_oneD_Fourier=False, pattern='train')
 
-# Take one batch for quick plots
-for batch in ds.take(1):
-    batch_np = batch.numpy() if hasattr(batch, "numpy") else np.array(batch)
-    # No labels in this dataset pipeline, so just fake a single label for the batch:
-    fake_labels = np.zeros((batch_np.shape[0],), dtype=int)
-    plot_time_signals(batch_np, fake_labels, samples_per_label=5)
-    plot_spectra(batch_np, fake_labels, fs=None, samples_per_label=5)
+# # Take one batch for quick plots
+# for batch in ds.take(1):
+#     batch_np = batch.numpy() if hasattr(batch, "numpy") else np.array(batch)
+#     # No labels in this dataset pipeline, so just fake a single label for the batch:
+#     fake_labels = np.zeros((batch_np.shape[0],), dtype=int)
+#     plot_time_signals(batch_np, fake_labels, samples_per_label=5)
+#     plot_spectra(batch_np, fake_labels, fs=None, samples_per_label=5)

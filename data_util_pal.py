@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import random
+import h5py
 
 from sklearn.model_selection import train_test_split
 import scipy.io as scio
@@ -140,13 +141,10 @@ def oneD_Fourier(data):
     
     return data
 
-def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern = 'train', label_list = [1, 2, 3]):
+def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern = 'train', label_list = [1,2,3,4,5,6,7,8,9]):
     """
     Get the dataset by label
     Label 0 is normal data, and other labels are fault data
-    Label 1: 
-    Label 2:
-    Label 3:
     """
 
     if 'train' == pattern:
@@ -192,10 +190,10 @@ def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern 
     return data_normal, label_normal
 
 def load_Dataset_Original(
-    label_list = [1,4,7], 
     batch_size = 1, 
     is_oneD_Fourier = False,
-    pattern = 'train'
+    pattern = 'full',
+    label_list = [0,1,2,3,4,5,6,7,8,9]
     ):
 
 
@@ -217,6 +215,34 @@ def load_Dataset_Original(
     # from_tensor_slices -> shuffle(1024) -> map(add1) -> batch(batch_size) (each batch is (batch_size,1024,1)) -> prefetch(AUTOTUNE)
     return dataset
 
+def save_data(data = MatHandler(is_oneD_Fourier = False),format = 'npy'):
+    """
+    Save the processed data to a file
+    """
+    # Ensure "data" directory exists
+    os.makedirs("data", exist_ok=True)
+
+    if format == 'npy':
+        np.savez_compressed("data/dataset.npz", 
+                            X_train=data.X_train, y_train=data.y_train,
+                            X_val=data.X_val, y_val=data.y_val,
+                            X_test=data.X_test, y_test=data.y_test)
+        #data = np.load("dataset.npz")
+        # X_train = data['X_train']
+    elif format == 'tf':
+        tf.data.experimental.save(load_Dataset_Original(1,False,'full'), "data/saved_dataset")
+        #reloaded = tf.data.experimental.load("saved_dataset")
+    elif format == 'h5py':
+        with h5py.File("data/dataset.h5", "w") as f:
+            f.create_dataset("X_train", data=data.X_train)
+            f.create_dataset("y_train", data=data.y_train)
+            f.create_dataset("X_val", data=data.X_val)
+            f.create_dataset("y_val", data=data.y_val)
+            f.create_dataset("X_test", data=data.X_test)
+            f.create_dataset("y_test", data=data.y_test)
+    else:
+        raise ValueError("Unsupported format. Use 'npy' or 'mat'.")
+
 if __name__ == "__main__":
     """
     Test the effect of dataset generation
@@ -226,6 +252,7 @@ if __name__ == "__main__":
                                     label_list=[]
                                     )    
     
+    save_data(data = MatHandler(is_oneD_Fourier = False),format = 'tf')
     # unique_labels = np.unique(label)
     # print("Unique labels:", unique_labels)
     # print("Number of label types:", len(unique_labels))
@@ -234,3 +261,7 @@ if __name__ == "__main__":
     # print(data.shape)
     # print(label.shape)
     # print('suc')
+    data = np.load('data/dataset.npz')
+    # Verify shapes
+    print("X_train shape:", data['X_train'].shape)
+    print("y_train shape:", data['y_train'].shape)

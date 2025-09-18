@@ -82,7 +82,12 @@ def loss_func(p, z):
 @tf.function
 def train_step(ds_one, ds_two, f, h, optimizer):        
     """
-    训练函数
+    Training function 
+    ds_one : time domain data
+    ds_two : frequency domain data
+    f: big 1D Conv encoder 
+    h: small MLP that maps embedding to another embedding
+
     """
 
     with tf.GradientTape() as tape:   
