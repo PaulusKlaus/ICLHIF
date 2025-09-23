@@ -45,6 +45,7 @@ class MatHandler(object):
                 # print(now_data_label)
                 # Get the list of dictionary keys in the mat file
                 var_dict = list(read_data.keys())
+                print ("Var_dir", var_dict)
                 # Find the variable with 'DE' in the .mat file                
                 for var in range(len(var_dict)):        
                     check_DE = var_dict[var].split("_")
@@ -55,12 +56,14 @@ class MatHandler(object):
                             # Record the variable name with DE
                             var_DE = var_dict[location]
                             break
+
                 # Read the data and transpose it
                 now_data = read_data[var_DE].T                 
                 # Remove the trailing part
                 unwanted = now_data.shape[1] %1024   
                 now_data = now_data[...,:-unwanted]
                 # Split the data into 1024
+                
                 now_data = now_data.reshape(-1,1024) 
                 now_data_len = now_data.shape[0]        
                 # Record labels
