@@ -4,6 +4,7 @@ import tensorflow as tf
 def get_encoder(codesize):    
     """
     获得Encoder
+    
     """
 
     inputs = tf.keras.layers.Input(shape=(1024, 1))   
