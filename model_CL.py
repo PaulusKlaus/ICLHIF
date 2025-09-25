@@ -7,6 +7,7 @@ def get_encoder(codesize):
     """
 
     inputs = tf.keras.layers.Input(shape=(1024, 1))   
+    # expect input tensor shaped (batch_size, 1024,1)
 
     x = tf.keras.layers.Conv1D(filters=64, kernel_size=3, strides=2, activation='linear')(inputs)    
     x = tf.keras.layers.BatchNormalization()(x) 
@@ -42,13 +43,15 @@ def get_encoder(codesize):
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)         
     
-    x = tf.keras.layers.Dense(units=4096, activation='relu', use_bias=False)(x)  
+    x = tf.keras.layers.Dense(units=4096, activation='relu', use_bias=False)(x)  #(batch,4096)
     x = tf.keras.layers.BatchNormalization()(x)
-    z = tf.keras.layers.Dense(units=512)(x)         
-    x = tf.keras.layers.BatchNormalization()(x)
-    z = tf.keras.layers.Dense(units=codesize)(x)    
+    #z = tf.keras.layers.Dense(units=512)(x)   #unused , should it be x???      (batch, 512)
+    x = tf.keras.layers.Dense(units=512)(x)   #unused , should it be x???      (batch, 512)
 
-    f = tf.keras.Model(inputs, z)   
+    x = tf.keras.layers.BatchNormalization()(x)  # should it be z here ? (batch, 4096)
+    z = tf.keras.layers.Dense(units=codesize)(x)    #(batch, codesize)
+
+    f = tf.keras.Model(inputs, z)   # constructs a model object with input:inputs and output: z
 
     return f            
 
@@ -59,9 +62,9 @@ def get_predictor(codesize):
     """
 
     inputs = tf.keras.layers.Input((codesize, ))
-    x = tf.keras.layers.Dense(8, activation='relu', use_bias=False)(inputs)    
+    x = tf.keras.layers.Dense(8, activation='relu', use_bias=False)(inputs)    # nn.linear
     x = tf.keras.layers.BatchNormalization()(x)
-    p = tf.keras.layers.Dense(codesize)(x)    
+    p = tf.keras.layers.Dense(codesize)(x)    # nn.linear
 
     h = tf.keras.Model(inputs, p)    
 
@@ -91,8 +94,8 @@ def train_step(ds_one, ds_two, f, h, optimizer):
     """
 
     with tf.GradientTape() as tape:   
-        z1, z2 = f(ds_one), f(ds_two)     
-        p1, p2 = h(z1), h(z2)             
+        z1, z2 = f(ds_one), f(ds_two)    # ds_one size should be the same size as ds_two  
+        p1, p2 = h(z1), h(z2)          # there should only be one predistion of the time series     
         loss = loss_func(p1, z2)/2 + loss_func(p2, z1)/2   
     
     learnable_params = f.trainable_variables + h.trainable_variables   
