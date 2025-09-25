@@ -1,19 +1,16 @@
-import tensorflow as tf
 import numpy as np
 import os
 import random
 import h5py
 
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+import torch
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset 
 import scipy.io as scio
 
-
-# at top
-try:
-    import tensorflow as tf
-    _HAVE_TF = True
-except Exception:
-    _HAVE_TF = False
 
 class MatHandler(object):    
     """
@@ -81,7 +78,7 @@ class MatHandler(object):
         data = data.reshape(-1, 1024, 1)  
         return data, label
 
-    def split_dataset(self, is_oneD_Fourier):
+    def split_dataset(self, is_oneD_Fourier, scale = False ):
         """
         Load the dataset
         Split the dataset into training set, validation set, and test set
@@ -99,10 +96,23 @@ class MatHandler(object):
         print(f"Training set unique labels: {np.unique(y_train)}")
         print(f"Labels distribution in train: {np.bincount(y_train)}")
         print(f"Temp set unique labels: {np.unique(y_temp)}")
-        print(f"Labels distribution in temp: {np.bincount(y_temp)}")        
+        print(f"Labels distribution in temp: {np.bincount(y_temp)}") 
+
         X_train = np.squeeze(X_train)     # remove single-dimensional entries from the shape of an array (913, 1024, 1) -> (913, 1024)
         X_test = np.squeeze(X_test)  # (196, 1024, 1) -> (196, 1024)
         X_val = np.squeeze(X_val) # (196, 1024, 1) -> (196, 1024)
+
+        if scale == True:
+            # Standardize features 
+            scaler = StandardScaler()    
+            """
+            This is a class from scikit learn used for standardize features by removing the mean and scaling to unit variance. 
+            This involves rescaling the features so that they have a mean of 0 and a standard deviation of 1 
+            Most of ML algorithms perform better when the features are on the similar scale 
+            """   
+            X_train = scaler.fit_transform(X_train)
+            X_test = scaler.transform(X_test)
+            X_val = scaler.transform(X_val)
 
         y_train = np.squeeze(y_train)
         y_test = np.squeeze(y_test)
@@ -149,7 +159,6 @@ def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern 
     Get the dataset by label
     Label 0 is normal data, and other labels are fault data
     """
-
     if 'train' == pattern:
         data = mathandler.X_train
         label = mathandler.y_train
@@ -166,12 +175,10 @@ def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern 
         data = np.vstack((mathandler.X_train, mathandler.X_val))
         label = np.hstack((mathandler.y_train, mathandler.y_val))
 
-
     # Separate normal data
     idx_normal = np.where(label == 0)[0]
     data_normal = data[idx_normal]
     label_normal = label[idx_normal]
-
   
     # Separate data by label
     for i in label_list:
@@ -189,7 +196,7 @@ def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern 
     random.shuffle(index)
     data_normal = data_normal[index]
     label_normal = label_normal[index]
-
+    print('Hi 1')
     return data_normal, label_normal
 
 def load_Dataset_Original(
@@ -198,24 +205,17 @@ def load_Dataset_Original(
     pattern = 'full',
     label_list = [0,1,2,3,4,5,6,7,8,9]
     ):
-
-
+    
     data, labels = get_Data_By_Label(
         mathandler = MatHandler(is_oneD_Fourier = is_oneD_Fourier), 
         pattern = pattern, 
         label_list = label_list
         )
     
-    # Get data from the oneD folder
-    if not _HAVE_TF:
-        # Fallback: just return numpy arrays when TF is unavailable
-        print("TensorFlow is not available. Returning numpy arrays.")
-        return data
-
-    AUTO = tf.data.experimental.AUTOTUNE # tune the performance of input pipeline
-    dataset = tf.data.Dataset.from_tensor_slices(data) # create a dataset from tensor slices
-    dataset = dataset.shuffle(1024).map(preprocessing, num_parallel_calls=AUTO).batch(batch_size).prefetch(AUTO) # prefetch data for better performance
-    # from_tensor_slices -> shuffle(1024) -> map(add1) -> batch(batch_size) (each batch is (batch_size,1024,1)) -> prefetch(AUTOTUNE)
+    dataset = torch.tensor(data, dtype=torch.float64)
+    print(dataset.shape)
+    label = torch.tensor(labels, dtype = torch.float64) 
+    print(label.shape)
     return dataset
 
 def save_data(data = MatHandler(is_oneD_Fourier = False),format = 'npy'):
@@ -232,9 +232,8 @@ def save_data(data = MatHandler(is_oneD_Fourier = False),format = 'npy'):
                             X_test=data.X_test, y_test=data.y_test)
         #data = np.load("dataset.npz")
         # X_train = data['X_train']
-    elif format == 'tf':
-        tf.data.experimental.save(load_Dataset_Original(1,False,'full'), "data/saved_dataset")
-        #reloaded = tf.data.experimental.load("saved_dataset")
+    elif format == 'tensor':
+        print("Not impplemented")
     elif format == 'h5py':
         with h5py.File("data/dataset.h5", "w") as f:
             f.create_dataset("X_train", data=data.X_train)
@@ -253,18 +252,36 @@ if __name__ == "__main__":
     data, label = get_Data_By_Label(mathandler=MatHandler(is_oneD_Fourier=False),
                                     pattern='train',
                                     label_list=[]
-                                    )    
+                                    ) 
+
+    print(type(data), data.dtype, data.shape)
+
+    print('Hi2') 
+    data   = np.ascontiguousarray(data)
+    print('hi3')
+    print(type(data), data.dtype, data.shape)
+
+    labels = np.ascontiguousarray(label)
+    print('hi4')
+    X = torch.tensor(data, dtype=torch.float64)  # copies data
+    print('hi')
+    y = torch.tensor(label, dtype=torch.long)    # copies data
+
+    print('hi6')
+    print("Shape of the X is :", X.shape)                         # no parentheses
+    print(y.shape)
     
-    save_data(data = MatHandler(is_oneD_Fourier = False),format = 'tf')
-    # unique_labels = np.unique(label)
-    # print("Unique labels:", unique_labels)
-    # print("Number of label types:", len(unique_labels))
-    # print(data) 
-    # print(label)
-    # print(data.shape)
-    # print(label.shape)
-    # print('suc')
-    data = np.load('data/dataset.npz')
-    # Verify shapes
-    print("X_train shape:", data['X_train'].shape)
-    print("y_train shape:", data['y_train'].shape)
+    data_1 = load_Dataset_Original()
+
+    # # unique_labels = np.unique(label)
+    # # print("Unique labels:", unique_labels)
+    # # print("Number of label types:", len(unique_labels))
+    # # print(data) 
+    # # print(label)
+    # # print(data.shape)
+    # # print(label.shape)
+    # # print('suc')
+    # data = np.load('data/dataset.npz')
+    # # Verify shapes
+    # print("X_train shape:", data['X_train'].shape)
+    # print("y_train shape:", data['y_train'].shape)
