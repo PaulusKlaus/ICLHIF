@@ -175,10 +175,27 @@ class Encoder(nn.Module):
     """
     Encoder = Backbone (1D ResNet 1001) + Projection MLP (to m-dim feature).
     """
-    def __init__(self, backbone_dim = 128, projection_dim = 128):
-        super().__init__()
-        self.backbone = BackBone1D(feat_dim=backbone_dim)
-        self.projection = Projector_MLP(backbone_dim, hidden_dim=128, out_size=projection_dim) # shoud there be 128 hidden layers or 64 ??
+    def __init__(self,
+                in_channel = 1,
+                out_channel = 16,
+                stride = 2,
+                kernes_size = 3, 
+                backbone = BackBone1D(feat_dim=128),
+                projector = Projector_MLP(128, hidden_dim=128,
+                )):
+
+        super(Encoder, self).__init__()
+
+        self.in_channel  = in_channel
+        self.output_channel = out_channel
+
+        # Hyper parameters 
+        self.stide = stride # controlls downsampling rate: how much we mode per step
+        self.kernel_size = kernes_size # controls the "receptive field": how many tiemsteps each filter looks at once.
+
+        # Encoder parts 
+        self.backbone = backbone
+        self.projection = projector # shoud there be 128 hidden layers or 64 ??
 
     def forward( self, x): 
         h = self.backbone(x) # ( B, 1, n)

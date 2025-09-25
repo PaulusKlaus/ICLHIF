@@ -42,7 +42,6 @@ class MatHandler(object):
                 # print(now_data_label)
                 # Get the list of dictionary keys in the mat file
                 var_dict = list(read_data.keys())
-                print ("Var_dir", var_dict)
                 # Find the variable with 'DE' in the .mat file                
                 for var in range(len(var_dict)):        
                     check_DE = var_dict[var].split("_")
@@ -61,8 +60,10 @@ class MatHandler(object):
                 now_data = now_data[...,:-unwanted]
                 # Split the data into 1024
                 
+                
                 now_data = now_data.reshape(-1,1024) 
-                now_data_len = now_data.shape[0]        
+                now_data_len = now_data.shape[0]  
+                     
                 # Record labels
                 for layer in range(int(now_data_len)):
                     label = np.append(label, int(now_data_label))
@@ -75,7 +76,9 @@ class MatHandler(object):
                 data = np.vstack((data,now_data))
                 count += 1
         # Return the dataset's data and labels
-        data = data.reshape(-1, 1024, 1)  
+        print("Now data shape:", now_data.shape)
+        data = data.reshape(-1, 1, 1024) 
+        print("now data shape after reshape: ",now_data.shape) 
         return data, label
 
     def split_dataset(self, is_oneD_Fourier, scale = False ):
@@ -85,22 +88,17 @@ class MatHandler(object):
         """
         # DONE
         X, y = self.read_mat()
-        print(f"Total data shape: {X.shape}, Total labels shape: {y.shape}")
-        print(f"Unique labels in the dataset: {np.unique(y)}")
-        print(f"Labels distribution in X: {np.bincount(y)}")
+        #print(f"Total data shape: {X.shape}, Total labels shape: {y.shape}, Unique labels in the dataset: {np.unique(y)}, Labels distribution in X: {np.bincount(y)}")
 
         # Extract 30% of the data as the test set, and from that, extract 50% as the validation set
         X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.30, random_state=42, stratify=y)       # random state schanged from 30
         X_test, X_val, y_test, y_val = train_test_split(X_temp, y_temp, test_size=0.50, random_state=42, stratify=y_temp) # random state schanged from 30
         print(f"Training set shape: {X_train.shape}, Training labels shape: {y_train.shape}")
-        print(f"Training set unique labels: {np.unique(y_train)}")
-        print(f"Labels distribution in train: {np.bincount(y_train)}")
-        print(f"Temp set unique labels: {np.unique(y_temp)}")
-        print(f"Labels distribution in temp: {np.bincount(y_temp)}") 
+        print(f"Train Labels: {np.unique(y_train)}, distrubution {np.bincount(y_train)}")
 
-        X_train = np.squeeze(X_train)     # remove single-dimensional entries from the shape of an array (913, 1024, 1) -> (913, 1024)
-        X_test = np.squeeze(X_test)  # (196, 1024, 1) -> (196, 1024)
-        X_val = np.squeeze(X_val) # (196, 1024, 1) -> (196, 1024)
+        X_train = np.squeeze(X_train)     # remove single-dimensional entries from the shape of an array (913, 1, 1024) -> (913, 1024)
+        X_test = np.squeeze(X_test)  
+        X_val = np.squeeze(X_val) 
 
         if scale == True:
             # Standardize features 
@@ -118,10 +116,9 @@ class MatHandler(object):
         y_test = np.squeeze(y_test)
         y_val = np.squeeze(y_val)
 
-
-        X_train = X_train.reshape(-1, 1024, 1) # (913, 1024, 1)
-        X_test = X_test.reshape(-1, 1024, 1) # (196, 1024, 1)
-        X_val = X_val.reshape(-1, 1024, 1) # (196, 1024, 1)
+        X_train = X_train.reshape(-1, 1, 1024) # (913, 1024, 1)
+        X_test = X_test.reshape(-1, 1, 1024) # (196, 1024, 1)
+        X_val = X_val.reshape(-1, 1, 1024) # (196, 1024, 1)
 
         # One-dimensional Fourier transform
         if is_oneD_Fourier == True:
@@ -129,10 +126,9 @@ class MatHandler(object):
             X_test = oneD_Fourier(X_test)
             X_val = oneD_Fourier(X_val)
 
-
         # The output is written this way for convenience, so that it is easy to modify when using the training set, test set, and validation set in this experiment
         # Originally: X_train is the training set, X_test is the test set, X_val is included in X_train
-        return X_train, y_train, X_val, y_val, X_test, y_test#, X_train_val, y_train_val       # cheng：X_train_val为训练集 + 测试集、 X_train_val and y_train_val add by cheng
+        return X_train, y_train, X_val, y_val, X_test, y_test
 
 def preprocessing(x):
     """
@@ -150,7 +146,7 @@ def oneD_Fourier(data):
 
     for sample in range(data.shape[0]): # in case of training there is 913 samples
         data[sample] = abs(np.fft.fft(data[sample]))
-    data = data.reshape(-1,1024,1)
+    data = data.reshape(-1,1, 1024)
     
     return data
 
@@ -196,7 +192,6 @@ def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern 
     random.shuffle(index)
     data_normal = data_normal[index]
     label_normal = label_normal[index]
-    print('Hi 1')
     return data_normal, label_normal
 
 def load_Dataset_Original(
@@ -256,32 +251,15 @@ if __name__ == "__main__":
 
     print(type(data), data.dtype, data.shape)
 
-    print('Hi2') 
-    data   = np.ascontiguousarray(data)
-    print('hi3')
+    #data   = np.ascontiguousarray(data)
     print(type(data), data.dtype, data.shape)
 
-    labels = np.ascontiguousarray(label)
-    print('hi4')
+    #labels = np.ascontiguousarray(label)
     X = torch.tensor(data, dtype=torch.float64)  # copies data
-    print('hi')
     y = torch.tensor(label, dtype=torch.long)    # copies data
 
-    print('hi6')
     print("Shape of the X is :", X.shape)                         # no parentheses
     print(y.shape)
-    
-    data_1 = load_Dataset_Original()
 
-    # # unique_labels = np.unique(label)
-    # # print("Unique labels:", unique_labels)
-    # # print("Number of label types:", len(unique_labels))
-    # # print(data) 
-    # # print(label)
-    # # print(data.shape)
-    # # print(label.shape)
-    # # print('suc')
-    # data = np.load('data/dataset.npz')
-    # # Verify shapes
-    # print("X_train shape:", data['X_train'].shape)
-    # print("y_train shape:", data['y_train'].shape)
+    train_dataset = TensorDataset(X)
+    train_loader = DataLoader(train_dataset)
