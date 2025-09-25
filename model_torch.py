@@ -35,13 +35,14 @@ class SimSiam(nn.Module):
     It removes the need for negative samples or momentum encoders, which were central in methodes like SimCLR and BYOL. 
     This simplicity makes SimSiam highly computationaly efficient while retaining exlellent preformance.
     """
-    def __init__(self, encoder, predictor,device, stride =2):
+    def __init__(self, backbone, projector, device, stride =2, in_channel = 1, out_channel = 16):
         super(SimSiam, self).__init__()
-
-        self.output_size = 16
+        self.in_channel  = in_channel
+        self.output_channel = out_channel
         self.predictor_hidden_size = 1024 # ???
 
-        self.backbone = encoder
+        self.backbone = backbone
+        self.projector = projector 
         
         self.projector =nn.Sequential( # also called backbone
             # First convolutional layer

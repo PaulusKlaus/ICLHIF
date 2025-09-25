@@ -262,4 +262,4 @@ if __name__ == "__main__":
     print(y.shape)
 
     train_dataset = TensorDataset(X)
-    train_loader = DataLoader(train_dataset)
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)

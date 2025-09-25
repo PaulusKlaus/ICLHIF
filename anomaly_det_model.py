@@ -59,55 +59,42 @@ class SimSiam(nn.Module):
         f_i = self.projector(self.backbone(a_i))
 
         return p1, f_i
-    
-
-
-class loss:
-
-    def __init__(self, projection_time, projection_freq, prediction_time, prediction_freq):
-        self.loss = self.simsiam_loss(prediction_time,projection_freq)
-        self.loss_forward = 0.5 * self.simsiam_loss(prediction_time, projection_freq) + 0.5 * self.simsiam_loss(prediction_freq, projection_time)
-
-    # loss function 
-    def simsiam_loss(self, p1,f_i, ver= "simple"):
-        """
-        Consine similarity between prediction_MLP and stopgradient ( projection vector) branch is computed and maximized 
-        p1 (torch.Tensor): prediction vector 
-        f_i ( torch.Tensor): projection vector 
-        """
-        # Detach z to stop gradient flow
-        if ver == "original":
-            f_i = f_i.detach()
-
-            # Normalize vectors 
-            p1 = F.normalize(p1, dim=1)
-            f_i = F.normalize(f_i, dim=1)
-
-            # Original formulation: negative dot product 
-            return -(p1 * f_i).sum(dim =1).mean()
-        elif ver == "simple":
-            return -F.cosine_similarity(p1, f_i.detach(), dim=-1).mean()
-        else: 
-            raise Exception 
 
 
 
-def oneD_Fourier_view(x_time: torch.Tensor) -> torch.Tensor:
+class Encoder(nn.Module):
     """
-    1D Fourier Transform
-    x_time: (batch_size, channel, length) -> (B, 1, n) real value 
-    Return a real spectrum (magnitude) with same length n (two sided), 
-    normalized per sample.  
-    TODO: what exactly does it mean normalized pre sample?
+    Encoder = Backbone (1D ResNet 1001) + Projection MLP (to m-dim feature).
     """
+    def __init__(self,
+                in_channel = 1,
+                out_channel = 16,
+                stride = 2,
+                kernes_size = 3, 
+                backbone = BackBone1D(feat_dim=128),
+                projector = Projector_MLP(128, hidden_dim=128,
+                )):
 
-    # The data has an extra dimension
-    data = x_time.squeeze(1) # (B, 1, n) -> (B, n)
-    Xf = torch.fft.fft(data) # complex values 
-    mag = torch.abs(Xf).unsqueeze(1) # (B, n) -> (B, 1, n)
-    # normalisation -> the highest number is one and other values are scaled appropriatly 
-    mag = mag / (mag.amax(dim = -1, keepdim = True) + 1e-8)  #TODO: im not sure what does this do ???
-    return mag 
+        super(Encoder, self).__init__()
+
+        self.in_channel  = in_channel
+        self.output_channel = out_channel
+
+        # Hyper parameters 
+        self.stide = stride # controlls downsampling rate: how much we mode per step
+        self.kernel_size = kernes_size # controls the "receptive field": how many tiemsteps each filter looks at once.
+
+        # Encoder parts 
+        self.backbone = backbone
+        self.projection = projector # shoud there be 128 hidden layers or 64 ??
+
+    def forward( self, x): 
+        h = self.backbone(x) # ( B, 1, n)
+        z = self.projection(h) # (B, backbone_dim)
+        z = F.normalize(z, dim=1) # L2-norm before similarity 
+        # TODO: Why do we normilise 
+
+        return z 
 
 
 class BasicBlock1D(nn.Module): 
@@ -171,36 +158,52 @@ class Predictor_MLP(nn.Module):
     def forward( self, x): return self.net(x)
 
 
-class Encoder(nn.Module):
+
+
+
+class loss:
+
+    def __init__(self, projection_time, projection_freq, prediction_time, prediction_freq):
+        self.loss = self.simsiam_loss(prediction_time,projection_freq)
+        self.loss_forward = 0.5 * self.simsiam_loss(prediction_time, projection_freq) + 0.5 * self.simsiam_loss(prediction_freq, projection_time)
+
+    # loss function 
+    def simsiam_loss(self, p1,f_i, ver= "simple"):
+        """
+        Consine similarity between prediction_MLP and stopgradient ( projection vector) branch is computed and maximized 
+        p1 (torch.Tensor): prediction vector 
+        f_i ( torch.Tensor): projection vector 
+        """
+        # Detach z to stop gradient flow
+        if ver == "original":
+            f_i = f_i.detach()
+
+            # Normalize vectors 
+            p1 = F.normalize(p1, dim=1)
+            f_i = F.normalize(f_i, dim=1)
+
+            # Original formulation: negative dot product 
+            return -(p1 * f_i).sum(dim =1).mean()
+        elif ver == "simple":
+            return -F.cosine_similarity(p1, f_i.detach(), dim=-1).mean()
+        else: 
+            raise Exception 
+
+
+
+def oneD_Fourier_view(x_time: torch.Tensor) -> torch.Tensor:
     """
-    Encoder = Backbone (1D ResNet 1001) + Projection MLP (to m-dim feature).
+    1D Fourier Transform
+    x_time: (batch_size, channel, length) -> (B, 1, n) real value 
+    Return a real spectrum (magnitude) with same length n (two sided), 
+    normalized per sample.  
+    TODO: what exactly does it mean normalized pre sample?
     """
-    def __init__(self,
-                in_channel = 1,
-                out_channel = 16,
-                stride = 2,
-                kernes_size = 3, 
-                backbone = BackBone1D(feat_dim=128),
-                projector = Projector_MLP(128, hidden_dim=128,
-                )):
 
-        super(Encoder, self).__init__()
-
-        self.in_channel  = in_channel
-        self.output_channel = out_channel
-
-        # Hyper parameters 
-        self.stide = stride # controlls downsampling rate: how much we mode per step
-        self.kernel_size = kernes_size # controls the "receptive field": how many tiemsteps each filter looks at once.
-
-        # Encoder parts 
-        self.backbone = backbone
-        self.projection = projector # shoud there be 128 hidden layers or 64 ??
-
-    def forward( self, x): 
-        h = self.backbone(x) # ( B, 1, n)
-        z = self.projection(h) # (B, backbone_dim)
-        z = F.normalize(z, dim=1) # L2-norm before similarity 
-        # TODO: Why do we normilise 
-
-        return z 
+    # The data has an extra dimension
+    data = x_time.squeeze(1) # (B, 1, n) -> (B, n)
+    Xf = torch.fft.fft(data) # complex values 
+    mag = torch.abs(Xf).unsqueeze(1) # (B, n) -> (B, 1, n)
+    # normalisation -> the highest number is one and other values are scaled appropriatly 
+    mag = mag / (mag.amax(dim = -1, keepdim = True) + 1e-8)  #TODO: im not sure what does this do ???
+    return mag 
