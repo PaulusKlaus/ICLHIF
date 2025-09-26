@@ -187,3 +187,28 @@ def negative_cosine_similarity(pred, proj):
    return -cos(pred, proj.detach()).mean()
 
 # .detach() is the gradientstop?
+class SimSiam_3(nn.Module):
+    """
+    SimSiam is an important follow up from the Siamese Network.
+    It removes the need for negative samples or momentum encoders, which were central in methodes like SimCLR and BYOL. 
+    This simplicity makes SimSiam highly computationaly efficient while retaining exlellent preformance.
+    """
+    def __init__(self, input_size = 1024, out_size= 16):
+        super(SimSiam_3, self).__init__()
+        self.input_size = input_size # input of the time domain and frequency domain should be the same -> one dimentional and with 1024 features each 
+        self.output_size = out_size 
+        self.predictor_hidden_size = 1024 # ???
+        self.backbone = nn.Sequential( )
+        self.projector =nn.Sequential()
+        self.prediction = nn.Sequential()
+                            
+    def forward(self,s_i, a_i):
+        # Online (student network)
+        x_i = self.projector(self.backbone(s_i))  # (N, 1024, L)
+        p1 = self.predictor_mlp(x_i)
+
+        # Target branch (with stop-gradient)
+        # Target (teacher network)
+        f_i = self.projector(self.backbone(a_i))
+
+        return p1, f_i

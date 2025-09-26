@@ -9,35 +9,35 @@ def get_encoder(codesize):
     inputs = tf.keras.layers.Input(shape=(1024, 1))   
     # expect input tensor shaped (batch_size, 1024,1)
 
-    x = tf.keras.layers.Conv1D(filters=64, kernel_size=3, strides=2, activation='linear')(inputs)    
+    x = tf.keras.layers.Conv1D(filters=64, kernel_size=3, strides=2, activation='linear')(inputs)#512    
     x = tf.keras.layers.BatchNormalization()(x) 
     x = tf.keras.layers.LeakyReLU()(x)
 
-    x = tf.keras.layers.Conv1D(filters=80, kernel_size=3, strides=2, activation='linear')(x)         
+    x = tf.keras.layers.Conv1D(filters=80, kernel_size=3, strides=2, activation='linear')(x)  #256       
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU()(x)
 
-    x = tf.keras.layers.Conv1D(filters=96, kernel_size=3, strides=2, activation='linear')(x)      
+    x = tf.keras.layers.Conv1D(filters=96, kernel_size=3, strides=2, activation='linear')(x) #128    
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU()(x)
 
-    x = tf.keras.layers.Conv1D(filters=112, kernel_size=3, strides=2, activation='linear')(x)        
-    x = tf.keras.layers.BatchNormalization()(x)                                                     
+    x = tf.keras.layers.Conv1D(filters=112, kernel_size=3, strides=2, activation='linear')(x) #64      
+    x = tf.keras.layers.BatchNormalization()(x)                                                  
     x = tf.keras.layers.LeakyReLU()(x)
 
-    x = tf.keras.layers.Conv1D(filters=128, kernel_size=3, strides=2, activation='linear')(x)        
+    x = tf.keras.layers.Conv1D(filters=128, kernel_size=3, strides=2, activation='linear')(x)      #32  
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU()(x)
 
-    x = tf.keras.layers.Conv1D(filters=256, kernel_size=3, strides=2, activation='linear')(x)
+    x = tf.keras.layers.Conv1D(filters=256, kernel_size=3, strides=2, activation='linear')(x)#16
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU()(x)
 
-    x = tf.keras.layers.Conv1D(filters=512, kernel_size=3, strides=2, activation='linear')(x)
+    x = tf.keras.layers.Conv1D(filters=512, kernel_size=3, strides=2, activation='linear')(x)#8
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU()(x)
 
-    x = tf.keras.layers.Conv1D(filters=1024, kernel_size=3, strides=2, activation='linear')(x)
+    x = tf.keras.layers.Conv1D(filters=1024, kernel_size=3, strides=2, activation='linear')(x)#4
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.LeakyReLU()(x)
 
@@ -46,7 +46,7 @@ def get_encoder(codesize):
     x = tf.keras.layers.Dense(units=4096, activation='relu', use_bias=False)(x)  #(batch,4096)
     x = tf.keras.layers.BatchNormalization()(x)
     #z = tf.keras.layers.Dense(units=512)(x)   #unused , should it be x???      (batch, 512)
-    X = tf.keras.layers.Dense(units=512)(x)   #unused , should it be x???      (batch, 512)
+    x = tf.keras.layers.Dense(units=512)(x)   #unused , should it be x???      (batch, 512)
 
     x = tf.keras.layers.BatchNormalization()(x)  # should it be z here ? (batch, 4096)
     z = tf.keras.layers.Dense(units=codesize)(x)    #(batch, codesize)
