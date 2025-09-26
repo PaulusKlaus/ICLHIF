@@ -63,10 +63,6 @@ class BasicBlock1D(nn.Module):
             out = self.conv_2(out)
             # implementation is not finished 
             raise ConnectionError
-
-
-        
-
         return out
     
 
@@ -318,12 +314,6 @@ def main():
     assert z.shape == (BATCH, 16), f"Expected (BATCH,16), got {z.shape}"
 
     print("Smoke test passed ✅")
-
-
-
-
-
-
 
 
 
