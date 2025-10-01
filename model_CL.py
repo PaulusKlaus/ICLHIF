@@ -98,7 +98,8 @@ def train_step(ds_one, ds_two, f, h, optimizer):
         p1, p2 = h(z1), h(z2)          # there should only be one predistion of the time series     
         loss = loss_func(p1, z2)/2 + loss_func(p2, z1)/2   
     
-    learnable_params = f.trainable_variables + h.trainable_variables   
+    learnable_params = f.trainable_variables + h.trainable_variables   # What are thouse trainable parameters?
+    
     gradients = tape.gradient(loss, learnable_params)
     optimizer.apply_gradients(zip(gradients, learnable_params))
 

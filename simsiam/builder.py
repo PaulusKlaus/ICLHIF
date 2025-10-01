@@ -164,6 +164,7 @@ class Projector_MLP(nn.Module):
 class Predictor_MLP(nn.Module):
     # two layers perceptron 
     # the output of this presictor should be the same at the outpur of the projector+gradient stop
+    # Two fully connected layers creating bottleneck 
     def __init__(self, in_dim=16, hidden_dim=4, out_dim=16): # bottleneck structure
         super().__init__()
         ''' page 3 baseline setting
@@ -272,6 +273,8 @@ class SimSiam(nn.Module):
         z_1, z_2 = f(x_1), f(x_2)
         # Predictor step 
         p_1, p_2 = h(z_1), h(z_2)
+        #d1 = cosine_similarity(p_1, z_2) / 2
+        #d2 = cosine_similarity(p_2, z_1) / 2
         Loss = loss_func(z_1, z_2, p_1, p_2)
         return {'loss': Loss}
     

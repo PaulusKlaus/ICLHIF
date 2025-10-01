@@ -1,6 +1,6 @@
 from tkinter import X
 from model_CL import get_encoder
-from data_util_pal import  get_Data_By_Label, MatHandler
+from simsiam.data_util_pal import  get_Data_By_Label, MatHandler
 
 from sklearn.manifold import TSNE
 from  matplotlib.colors import  rgb2hex

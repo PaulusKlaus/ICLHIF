@@ -8,7 +8,7 @@ from scipy.io import savemat
 
 # Import the code under test
 # If your file is not named mat_handler.py, change this import accordingly.
-import data_util_pal as mh
+import simsiam.data_util_pal as mh
 
 
 # ---------- Helpers & Fixtures ----------

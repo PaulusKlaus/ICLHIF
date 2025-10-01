@@ -212,3 +212,89 @@ class SimSiam_3(nn.Module):
         f_i = self.projector(self.backbone(a_i))
 
         return p1, f_i
+    
+
+
+
+
+def main():
+    """
+    Main func to set up training and validation for SimSiam 
+    Handles directory creation, data preparation, model setup,training lopps, and checkpointing
+    """
+
+    # Create experiment directory if it does not exist 
+    if not path.exists(args.exp_dir):
+        makedirs(args.exp_dir)
+
+    # Setup trial-specific directory and logger for TensorBorad 
+    trial_dir = path.join(args.exp_dir, args.trial)
+    logger = SummaryWriter(trial_dir)
+    print(vars(args)) # Print experiment configuration 
+
+    # TODO: Load data 
+    # Data augmentation 
+
+    train_set = None 
+    train_loader  = DataLoader(dataset=train_set,
+                               batch_size= args.batch_size,
+                               shuffle = True,
+                               num_workers = args.num_workers,
+                               pin_memory=True,
+                               drop_last=True)
+    
+    # Initialize SimSiam model 
+    model = SimSiam(args)
+
+    # Defien SGD optimizer with momentum amd weight decay 
+    optimizer = torch.optim.SGD(model.parameters(),
+                                lr = args.learning_rate,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay)
+
+    if args.gpu is not None:
+        torch.cuda.set_device(args.gpu)
+        model = model.cuda(args.gpu)
+       # criterion = criterion.cuda(args.gpu)
+        cudnn.benchmark = True  # Enable auto-tuning for faster training
+    
+    # Resume from a checkpoint if provided
+   # start_epoch = 1
+    #if args.resume is not None:
+     #   if path.isfile(args.resume):
+      #      start_epoch, model, optimizer = load_checkpoint(model, optimizer, args.resume)
+      #      print("Loaded checkpoint '{}' (epoch {})".format(args.resume, start_epoch))
+       # else:
+       #     print("No checkpoint found at '{}'".format(args.resume))
+
+    # Training and validation loop 
+    best_accuracy = 0.0
+    validation = KNNValidation
+
+
+
+
+
+def pre_train(epoch, train_loader, model, optimizer, args):
+
+    model.train()
+
+    losses, step = 0., 0.
+
+    for x1, x2, target in train_loader:
+        if args.cuda:
+            x1, x2 = x1.cuda(), x2.cuda()
+
+        loss = model(x1, x2)
+        loss.backward()
+        optimizer.step()
+        losses += loss.item()
+
+        step +=1
+    print('[Epoch: {0:4d}, loss: {1:.3f}'.format(epoch, losses / step))
+    return losses / step
+
+
+
+        
+

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter
-import data_util_pal
+import simsiam.data_util_pal as data_util_pal
 
 def plot_label_distribution(labels, title="Label distribution"):
     counts = Counter(labels.tolist() if isinstance(labels, np.ndarray) else labels)

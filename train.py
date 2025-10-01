@@ -7,7 +7,7 @@ import os
 from os.path import join
 from tqdm import tqdm
 from model_CL import get_encoder, get_predictor, train_step
-from data_util_pal import load_Dataset_Original
+from simsiam.data_util_pal import load_Dataset_Original
 
 
 def train_CL(
@@ -162,6 +162,6 @@ if __name__ == '__main__':
     """
     Training entry point
     """
-    Step = 'three'   # Set step
+    Step = 'one'   # Set step
     train_Step(Step=Step)
 
