@@ -150,7 +150,10 @@ def oneD_Fourier(data):
     
     return data
 
-def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False), pattern = 'train', label_list = [1,2,3,4,5,6,7,8,9]):
+def get_Data_By_Label(mathandler = MatHandler(is_oneD_Fourier = False),
+                       pattern = 'train',
+                         label_list = [1,2,3,4,5,6,7,8,9]
+                         ):
     """
     Get the dataset by label
     Label 0 is normal data, and other labels are fault data
