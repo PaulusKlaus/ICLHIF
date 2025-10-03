@@ -42,7 +42,8 @@ def get_encoder(codesize):
     x = tf.keras.layers.LeakyReLU()(x)
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)         
-    
+    # described as a projector in the project 
+    # to fully connected layers 
     x = tf.keras.layers.Dense(units=4096, activation='relu', use_bias=False)(x)  #(batch,4096)
     x = tf.keras.layers.BatchNormalization()(x)
     #z = tf.keras.layers.Dense(units=512)(x)   #unused , should it be x???      (batch, 512)
